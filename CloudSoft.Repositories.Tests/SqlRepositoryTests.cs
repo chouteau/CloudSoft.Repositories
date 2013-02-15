@@ -8,18 +8,18 @@ using System.Data.Entity;
 namespace CloudSoft.Repositories.Tests
 {
 	[TestFixture]
-	public class SqlRepositoryTest
+	public class SqlRepositoryTests
 	{
-		private SqlTestDbContext m_DbContext;
-		private SqlRepository<SqlTestDbContext> m_SqlRepository;
+		private TestDbContext m_DbContext;
+		private SqlRepository<TestDbContext> m_SqlRepository;
 
 		[SetUp]
 		public void Setup()
 		{
-			m_DbContext = new SqlTestDbContext();
-			m_SqlRepository = new SqlRepository<SqlTestDbContext>();
-			var dbContextFactory = new DbContextFactory<SqlTestDbContext>();
-			var initializer = new Repositories.Initializers.SqlSchemaInitializer<SqlTestDbContext>(dbContextFactory);
+			m_DbContext = new TestDbContext();
+			m_SqlRepository = new SqlRepository<TestDbContext>();
+			var dbContextFactory = new DbContextFactory<TestDbContext>();
+			var initializer = new Repositories.Initializers.SqlSchemaInitializer<TestDbContext>(dbContextFactory);
 			initializer.Initialize("_schema_test", null);
 			m_SqlRepository.TraceEnabled = true;
 		}

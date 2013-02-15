@@ -7,9 +7,9 @@ using System.Data.Entity.Infrastructure;
 
 namespace CloudSoft.Repositories.Tests
 {
-	public class SqlTestDbContext : DbContext
+	public class TestDbContext : DbContext
 	{
-		public SqlTestDbContext()
+		public TestDbContext()
 			: base("name=testConnectionString")
 		{
 
