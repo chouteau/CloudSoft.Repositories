@@ -19,7 +19,6 @@ namespace CloudSoft.Repositories.Tests
 
 		protected override void OnModelCreating(DbModelBuilder modelBuilder)
 		{
-			modelBuilder.Conventions.Remove<IncludeMetadataConvention>();
 			modelBuilder.Configurations.Add(new MyModelMap());
 		}
 	}

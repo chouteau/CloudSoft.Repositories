@@ -21,53 +21,31 @@ namespace CloudSoft.Repositories.Tests
 			var dbContextFactory = new DbContextFactory<SqlTestDbContext>();
 			var initializer = new Repositories.Initializers.SqlSchemaInitializer<SqlTestDbContext>(dbContextFactory);
 			initializer.Initialize("_schema_test", null);
-		}
-
-		[Test]
-		public void Create_Insert()
-		{
-			var myModel = new MyModel();
-			myModel.Name = Guid.NewGuid().ToString();
-
-			m_SqlRepository.Insert(myModel);
-
-			var existingId = myModel.Id;
-			Assert.AreNotEqual(existingId, 0);
-		}
-
-		[Test]
-		public void Create_Insert_Update()
-		{
-			var myModel = new MyModel();
-			myModel.Name = Guid.NewGuid().ToString();
-
-			m_SqlRepository.Insert(myModel);
-
-			var existingId = myModel.Id;
-			var existingName = myModel.Name;
-			Assert.AreNotEqual(existingId, 0);
-
-			myModel.Name = Guid.NewGuid().ToString();
-
-			m_SqlRepository.Update(myModel);
-
-			Assert.AreEqual(myModel.Id, existingId);
-			Assert.AreNotEqual(myModel.Name, existingName);
+			m_SqlRepository.TraceEnabled = true;
 		}
 
 		[Test]
 		public void Create_Insert_Get_Delete()
 		{
-			var myModel = new MyModel();
-			myModel.Name = Guid.NewGuid().ToString();
+			var model = new MyModel();
+			model.Name = Guid.NewGuid().ToString();
 
-			m_SqlRepository.Insert(myModel);
+			m_SqlRepository.Insert(model);
 
-			var existingId = myModel.Id;
+			var existingId = model.Id;
 
-			var model = m_SqlRepository.Get<MyModel>(i => i.Id == existingId);
+			model = m_SqlRepository.Get<MyModel>(i => i.Id == existingId);
 
 			Assert.IsNotNull(model);
+
+			var name = Guid.NewGuid().ToString();
+			model.Name = name;
+
+			m_SqlRepository.Update(model);
+
+			model = m_SqlRepository.Get<MyModel>(i => i.Id == existingId);
+
+			Assert.AreEqual(name, model.Name);
 
 			m_SqlRepository.Delete(model);
 
