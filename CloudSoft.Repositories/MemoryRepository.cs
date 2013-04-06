@@ -10,7 +10,7 @@ using System.Collections.Concurrent;
 namespace CloudSoft.Repositories
 {
 	/// <summary>
-	/// For tests mocking
+	/// For tests 
 	/// </summary>
 	/// <typeparam name="TContext"></typeparam>
 	public class MemoryRepository<TContext> : IRepository<TContext>
@@ -27,10 +27,13 @@ namespace CloudSoft.Repositories
 
 		public int Delete<T>(T entity) where T : class
 		{
-			var table = GetOrCreateList<T>() as IList<T>;
+			var table = GetOrCreateList<T>() as SynchronizedCollection<T>;
 			if (table.Contains(entity))
 			{
-				table.Remove(entity);
+				lock (table.SyncRoot)
+				{
+					table.Remove(entity);
+				}
 				return 1;
 			}
 			return 0;
@@ -48,7 +51,11 @@ namespace CloudSoft.Repositories
 					break;
 				}
 				result++;
-				(table as IList<T>).Remove(item);
+				var list = table as SynchronizedCollection<T>;
+				lock(list.SyncRoot)
+				{
+					list.Remove(item);
+				}
 			}
 			return result;
 		}
@@ -71,7 +78,12 @@ namespace CloudSoft.Repositories
 		public T Get<T>(System.Linq.Expressions.Expression<Func<T, bool>> predicate) where T : class
 		{
 			var table = GetOrCreateList<T>();
-			return table.AsQueryable().FirstOrDefault(predicate);
+			T result = default(T);
+			lock (table.SyncRoot)
+			{
+				result = table.AsQueryable().FirstOrDefault(predicate);
+			}
+			return result;
 		}
 
 		public TContext GetDbContext()
@@ -86,7 +98,10 @@ namespace CloudSoft.Repositories
 			{
 				throw new Exception("entity already exists");
 			}
-			list.Add(entity);
+			lock (list.SyncRoot)
+			{
+				list.Add(entity);
+			}
 			var pkName = "Id"; // TODO : Use GetPrimaryKeyName from DbContext
 			var pik = entity.GetType().GetProperty(pkName, System.Reflection.BindingFlags.GetProperty | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.IgnoreCase);
 			if (pik != null)
@@ -130,7 +145,7 @@ namespace CloudSoft.Repositories
 
 		public int Update<T>(T entity) where T : class
 		{
-			var table = GetOrCreateList<T>() as IList<T>;
+			var table = GetOrCreateList<T>() as SynchronizedCollection<T>;
 			var index = table.IndexOf(entity);
 			if (index > 0)
 			{
@@ -149,18 +164,18 @@ namespace CloudSoft.Repositories
 
 		#endregion
 
-		private IList<T> GetOrCreateList<T>()
+		private SynchronizedCollection<T> GetOrCreateList<T>()
 		{
 			var key = typeof(T).AssemblyQualifiedName;
-			IList<T> list = null;
+			SynchronizedCollection<T> list = null;
 			if (!m_Database.ContainsKey(key))
 			{
-				list = new List<T>();
+				list = new SynchronizedCollection<T>();
 				m_Database.TryAdd(key, list);
 			}
 			else
 			{
-				list = m_Database[key] as IList<T>;
+				list = m_Database[key] as SynchronizedCollection<T>;
 			}
 			return list;
 		}
