@@ -5,6 +5,7 @@ using System.Text;
 using System.Data.Entity.Infrastructure;
 using System.Data.Objects;
 using System.Data.Objects.DataClasses;
+using System.Collections.Concurrent;
 
 namespace CloudSoft.Repositories
 {
@@ -15,11 +16,11 @@ namespace CloudSoft.Repositories
 	public class MemoryRepository<TContext> : IRepository<TContext>
 		where TContext : System.Data.Entity.DbContext, IObjectContextAdapter, new()
 	{
-		private Dictionary<string, object> m_Database;
+		private ConcurrentDictionary<string, object> m_Database;
 
 		public MemoryRepository()
 		{
-			m_Database = new Dictionary<string, object>();
+			m_Database = new ConcurrentDictionary<string, object>();
 		}
 
 		#region IRepository<TContext> Members
@@ -155,7 +156,7 @@ namespace CloudSoft.Repositories
 			if (!m_Database.ContainsKey(key))
 			{
 				list = new List<T>();
-				m_Database.Add(key, list);
+				m_Database.TryAdd(key, list);
 			}
 			else
 			{
