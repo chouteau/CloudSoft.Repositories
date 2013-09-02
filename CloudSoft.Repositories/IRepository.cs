@@ -21,5 +21,6 @@ namespace CloudSoft.Repositories
 		System.Linq.IQueryable<T> Query<T>() where T : class;
 		System.Linq.IQueryable<T> Query<T>(System.Linq.Expressions.Expression<Func<T, bool>> predicate) where T : class;
 		int Update<T>(T entity) where T : class;
+		void BulkInsert<T>(IEnumerable<T> list) where T : class;
 	}
 }

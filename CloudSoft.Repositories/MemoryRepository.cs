@@ -162,6 +162,14 @@ namespace CloudSoft.Repositories
 			return 0;
 		}
 
+		public virtual void BulkInsert<T>(IEnumerable<T> list) where T : class
+		{
+			foreach (var item in list)
+			{
+				Insert(item);
+			}
+		}
+
 		#endregion
 
 		private SynchronizedCollection<T> GetOrCreateList<T>()

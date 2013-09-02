@@ -20,7 +20,7 @@ namespace CloudSoft.Repositories.Tests
 		}
 
 		[Test]
-		public void Create_Insert_Get_Delete()
+		public void CRUD()
 		{
 			var model = new MyModel();
 			model.Name = Guid.NewGuid().ToString();
@@ -47,6 +47,22 @@ namespace CloudSoft.Repositories.Tests
 			model = m_MRepository.Get<MyModel>(i => i.Id == existingId);
 
 			Assert.IsNull(model);
+		}
+
+		[Test]
+		public void Bulk_Insert()
+		{
+			var bulk = new List<MyModel>();
+			for (int i = 0; i < 100; i++)
+			{
+				var model = new MyModel();
+				model.Name = Guid.NewGuid().ToString();
+				bulk.Add(model);
+			}
+
+			m_MRepository.BulkInsert(bulk);
+
+			Assert.AreEqual(bulk.Last().Id, 100);
 		}
 
 
