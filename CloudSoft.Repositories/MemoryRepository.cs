@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Data.Entity.Infrastructure;
-using System.Data.Objects;
-using System.Data.Objects.DataClasses;
 using System.Collections.Concurrent;
+using System.Data.Entity.Core.Objects;
 
 namespace CloudSoft.Repositories
 {
@@ -70,7 +69,7 @@ namespace CloudSoft.Repositories
 			throw new NotImplementedException();
 		}
 
-		public System.Data.Objects.ObjectResult<T> ExecuteStoreQuery<T>(string cmdText, params object[] parameters)
+		public ObjectResult<T> ExecuteStoreQuery<T>(string cmdText, params object[] parameters)
 		{
 			throw new NotImplementedException();
 		}

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Entity.Core.Objects;
 using System.Linq;
 using System.Text;
 
@@ -12,7 +13,7 @@ namespace CloudSoft.Repositories
 		int DeleteAll<T>(System.Linq.Expressions.Expression<Func<T, bool>> predicate) where T : class;
 		void Dispose();
 		int ExecuteStoreCommand(string cmdText, params object[] parameters);
-		System.Data.Objects.ObjectResult<T> ExecuteStoreQuery<T>(string cmdText, params object[] parameters);
+		ObjectResult<T> ExecuteStoreQuery<T>(string cmdText, params object[] parameters);
 		T Get<T>(System.Linq.Expressions.Expression<Func<T, bool>> predicate) where T : class;
 		TContext GetDbContext();
 		int Insert<T>(T entity) where T : class;

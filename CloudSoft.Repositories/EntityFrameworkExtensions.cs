@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Reflection;
-using System.Data.Objects;
 using System.Data.Common;
-using System.Data.EntityClient;
 using System.Collections;
-using System.Data.Objects.DataClasses;
+using System.Data.Entity.Core.Objects;
+using System.Data.Entity.Core.EntityClient;
 
 namespace CloudSoft.Repositories
 {

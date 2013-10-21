@@ -37,7 +37,7 @@ namespace CloudSoft.Repositories.Initializers
 		//    m_DbContext = dbContext;
 		//}
 
-		public void Initialize(string schemaTableName, string embededScriptNameSpace)
+		public void Initialize(string schemaTableName, string embededScriptNameSpace = null)
 		{
 			Database.SetInitializer<TContext>(null);
 

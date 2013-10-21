@@ -6,7 +6,7 @@ using System.Linq.Expressions;
 using System.Data;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
-using System.Data.Objects;
+using System.Data.Entity.Core.Objects;
 
 namespace CloudSoft.Repositories
 {
@@ -40,11 +40,11 @@ namespace CloudSoft.Repositories
 				throw new ArgumentException("predicate does not be null.");
 			}
 			var dbContext = GetDbContext();
-			var query = dbContext.Set<T>().Where(predicate);
-			if (TraceEnabled)
-			{
-				System.Diagnostics.Debug.WriteLine(query.ToTraceString());
-			}
+			var query = dbContext.Set<T>().Where(predicate); 
+			//if (TraceEnabled)
+			//{
+			//	System.Diagnostics.Debug.WriteLine(query.ToTraceString());
+			//}
 			var result = query.FirstOrDefault();
 			return result;
 		}
@@ -53,10 +53,10 @@ namespace CloudSoft.Repositories
 		{
 			var dbContext = GetDbContext();
 			var query = dbContext.Set<T>().Where(predicate);
-			if (TraceEnabled)
-			{
-				System.Diagnostics.Debug.WriteLine(query.ToTraceString());
-			}
+			//if (TraceEnabled)
+			//{
+			//	System.Diagnostics.Debug.WriteLine(query.ToTraceString());
+			//}
 			return query;
 		}
 
@@ -102,11 +102,11 @@ namespace CloudSoft.Repositories
 				dbSet.Add(entity);
 				dbContext.ObjectContext.ObjectStateManager.ChangeObjectState(entity, EntityState.Added);
 
-				if (TraceEnabled)
-				{
-					string sql = dbContext.ObjectContext.ToTraceString();
-					System.Diagnostics.Debug.WriteLine(sql);
-				}
+				//if (TraceEnabled)
+				//{
+				//	string sql = dbContext.ObjectContext.ToTraceString();
+				//	System.Diagnostics.Debug.WriteLine(sql);
+				//}
 
 				result = dbContext.SaveChanges();
 			}
@@ -126,8 +126,8 @@ namespace CloudSoft.Repositories
 			}
 			catch (Exception exp)
 			{
-				string sql = dbContext.ObjectContext.ToTraceString();
-				exp.Data.Add("SqlRepository:SqlScript", sql);
+				// string sql = dbContext.ObjectContext.ToTraceString();
+				// exp.Data.Add("SqlRepository:SqlScript", sql);
 				exp.Data.Add("SqlRepository:Insert:Entity", entity.ToString());
 				throw;
 			}
@@ -158,11 +158,11 @@ namespace CloudSoft.Repositories
 						dbContext.ObjectContext.ObjectStateManager.ChangeObjectState(entity, EntityState.Added);
 					}
 
-					if (TraceEnabled)
-					{
-						string sql = dbContext.ObjectContext.ToTraceString();
-						System.Diagnostics.Debug.WriteLine(sql);
-					}
+					//if (TraceEnabled)
+					//{
+					//	string sql = dbContext.ObjectContext.ToTraceString();
+					//	System.Diagnostics.Debug.WriteLine(sql);
+					//}
 
 					dbContext.SaveChanges();
 					transactionScope.Complete();
@@ -184,8 +184,8 @@ namespace CloudSoft.Repositories
 			}
 			catch (Exception exp)
 			{
-				string sql = dbContext.ObjectContext.ToTraceString();
-				exp.Data.Add("SqlRepository:SqlScript", sql);
+				// string sql = dbContext.ObjectContext.ToTraceString();
+				// exp.Data.Add("SqlRepository:SqlScript", sql);
 				throw;
 			}
 		}
@@ -202,18 +202,18 @@ namespace CloudSoft.Repositories
 				}
 				dbContext.ObjectContext.ObjectStateManager.ChangeObjectState(entity, EntityState.Modified);
 
-				if (TraceEnabled)
-				{
-					string sql = dbContext.ObjectContext.ToTraceString();
-					System.Diagnostics.Debug.WriteLine(sql);
-				}
+				//if (TraceEnabled)
+				//{
+				//	string sql = dbContext.ObjectContext.ToTraceString();
+				//	System.Diagnostics.Debug.WriteLine(sql);
+				//}
 
 				result = dbContext.SaveChanges();
 			}
 			catch (Exception exp)
 			{
-				string sql = dbContext.ObjectContext.ToTraceString();
-				exp.Data.Add("SqlRepository:SqlScript", sql);
+				// string sql = dbContext.ObjectContext.ToTraceString();
+				// exp.Data.Add("SqlRepository:SqlScript", sql);
 				exp.Data.Add("SqlRepository:Update:Entity", entity.ToString());
 				throw;
 			}
@@ -235,11 +235,11 @@ retry:
 				}
 				dbContext.ObjectContext.DeleteObject(entity);
 
-				if (TraceEnabled)
-				{
-					string sql = dbContext.ObjectContext.ToTraceString();
-					System.Diagnostics.Debug.WriteLine(sql);
-				}
+				//if (TraceEnabled)
+				//{
+				//	string sql = dbContext.ObjectContext.ToTraceString();
+				//	System.Diagnostics.Debug.WriteLine(sql);
+				//}
 
 				result = dbContext.SaveChanges();
 			}
@@ -255,8 +255,8 @@ retry:
 			}
 			catch (Exception exp)
 			{
-				string sql = dbContext.ObjectContext.ToTraceString();
-				exp.Data.Add("SqlRepository:SqlScript", sql);
+				// string sql = dbContext.ObjectContext.ToTraceString();
+				// exp.Data.Add("SqlRepository:SqlScript", sql);
 				exp.Data.Add("SqlRepository:Delete:Entity", entity.ToString());
 				throw;
 			}
@@ -281,11 +281,11 @@ retry:
 						dbContext.Set<T>().Attach(entity);
 					}
 					dbContext.ObjectContext.DeleteObject(entity);
-					if (TraceEnabled)
-					{
-						string sql = dbContext.ObjectContext.ToTraceString();
-						System.Diagnostics.Debug.WriteLine(sql);
-					}
+					//if (TraceEnabled)
+					//{
+					//	string sql = dbContext.ObjectContext.ToTraceString();
+					//	System.Diagnostics.Debug.WriteLine(sql);
+					//}
 					result = dbContext.SaveChanges();
 				}
 				catch (DbUpdateConcurrencyException)
@@ -300,8 +300,8 @@ retry:
 				}
 				catch (Exception exp)
 				{
-					string sql = dbContext.ObjectContext.ToTraceString();
-					exp.Data.Add("SqlRepository:SqlScript", sql);
+					// string sql = dbContext.ObjectContext.ToTraceString();
+					// exp.Data.Add("SqlRepository:SqlScript", sql);
 					exp.Data.Add("SqlRepository:Delete:Entity", entity.ToString());
 					throw;
 				}
