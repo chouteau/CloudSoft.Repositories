@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Data.Entity.ModelConfiguration;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CloudSoft.Repositories.Initializers
 {
@@ -16,8 +14,7 @@ namespace CloudSoft.Repositories.Initializers
 			this.HasKey(e => e.Id);
 
 			this.Property(e => e.Id)
-				.IsRequired()
-				.HasDatabaseGeneratedOption(DatabaseGeneratedOption.None);
+				.IsRequired();
 
 			this.Property(e => e.Name)
 				.IsRequired()
