@@ -14,7 +14,8 @@ namespace CloudSoft.Repositories.Initializers
 			this.HasKey(e => e.Id);
 
 			this.Property(e => e.Id)
-				.IsRequired();
+				.IsRequired()
+				.HasDatabaseGeneratedOption(System.ComponentModel.DataAnnotations.Schema.DatabaseGeneratedOption.None);
 
 			this.Property(e => e.Name)
 				.IsRequired()
