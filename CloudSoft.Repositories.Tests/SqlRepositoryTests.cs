@@ -54,9 +54,17 @@ namespace CloudSoft.Repositories.Tests
 		}
 
 		[Test]
+		public void Create_Insert_Get_Delete_With_Thread()
+		{
+			var thread = new System.Threading.Thread(Create_Insert_Get_Delete);
+			thread.IsBackground = true;
+			thread.Start();
+		}
+
+
+		[Test]
 		public async void Create_Insert_Get_Delete_Async()
 		{
-
 			var model = new MyModel();
 			model.Name = Guid.NewGuid().ToString();
 

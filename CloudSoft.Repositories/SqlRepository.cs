@@ -33,7 +33,14 @@ namespace CloudSoft.Repositories
 
 		public virtual T Get<T>(Expression<Func<T, bool>> predicate) where T : class
 		{
-			return GetAsync(predicate).Result;
+			if (predicate == null)
+			{
+				throw new ArgumentException("predicate does not be null.");
+			}
+			var dbContext = GetDbContext();
+			var query = dbContext.Set<T>().Where(predicate);
+			var result = query.FirstOrDefault();
+			return result;
 		}
 
 		public virtual async Task<T> GetAsync<T>(Expression<Func<T, bool>> predicate) where T : class
@@ -76,7 +83,43 @@ namespace CloudSoft.Repositories
 
 		public virtual int Insert<T>(T entity) where T : class
 		{
-			return InsertAsync(entity).Result;
+			int result = 0;
+			var dbContext = GetDbContext();
+			try
+			{
+				var dbSet = dbContext.Set<T>();
+				var entry = dbContext.Entry(entity);
+				if (entry.State == EntityState.Detached)
+				{
+					dbSet.Attach(entity);
+				}
+				dbSet.Add(entity);
+				dbContext.ObjectContext.ObjectStateManager.ChangeObjectState(entity, EntityState.Added);
+
+				result = dbContext.SaveChanges();
+			}
+			catch (System.Data.Entity.Validation.DbEntityValidationException vex)
+			{
+				int errorId = 0;
+				foreach (var item in vex.EntityValidationErrors)
+				{
+					foreach (var error in item.ValidationErrors)
+					{
+						errorId++;
+						string key = string.Format("{0}{1}", error.PropertyName, errorId);
+						vex.Data.Add(key, error.ErrorMessage);
+					}
+				}
+				throw;
+			}
+			catch (Exception exp)
+			{
+				Console.WriteLine(exp);
+				exp.Data.Add("SqlRepository:Insert:Entity", entity.ToString());
+				throw;
+			}
+
+			return result;
 		}
 
 		public virtual async Task<int> InsertAsync<T>(T entity) where T : class
@@ -112,6 +155,7 @@ namespace CloudSoft.Repositories
 			}
 			catch (Exception exp)
 			{
+				Console.WriteLine(exp);
 				exp.Data.Add("SqlRepository:Insert:Entity", entity.ToString());
 				throw;
 			}
@@ -168,7 +212,25 @@ namespace CloudSoft.Repositories
 
 		public virtual int Update<T>(T entity) where T : class
 		{
-			return UpdateAsync(entity).Result;
+			int result = 0;
+			var dbContext = GetDbContext();
+			try
+			{
+				if (dbContext.Entry(entity).State == EntityState.Detached)
+				{
+					dbContext.Set<T>().Attach(entity);
+				}
+				dbContext.ObjectContext.ObjectStateManager.ChangeObjectState(entity, EntityState.Modified);
+
+				result = dbContext.SaveChanges();
+			}
+			catch (Exception exp)
+			{
+				exp.Data.Add("SqlRepository:Update:Entity", entity.ToString());
+				throw;
+			}
+
+			return result;
 		}
 
 		public virtual async Task<int> UpdateAsync<T>(T entity) where T : class
@@ -196,7 +258,41 @@ namespace CloudSoft.Repositories
 
 		public virtual int Delete<T>(T entity) where T : class
 		{
-			return DeleteAsync(entity).Result;
+			int result = 0;
+			var dbContext = GetDbContext();
+			var loop = 0;
+
+			while (true)
+			{
+				try
+				{
+					if (dbContext.Entry(entity).State == EntityState.Detached)
+					{
+						dbContext.Set<T>().Attach(entity);
+					}
+					dbContext.ObjectContext.DeleteObject(entity);
+
+					result = dbContext.SaveChanges();
+					break;
+				}
+				catch (DbUpdateConcurrencyException)
+				{
+					dbContext.ObjectContext.Refresh(RefreshMode.StoreWins, entity);
+					if (loop > 2)
+					{
+						break;
+					}
+					loop++;
+					System.Threading.Thread.Sleep(100);
+				}
+				catch (Exception exp)
+				{
+					exp.Data.Add("SqlRepository:Delete:Entity", entity.ToString());
+					throw;
+				}
+			}
+
+			return result;
 		}
 
 		public virtual async Task<int> DeleteAsync<T>(T entity) where T : class
@@ -279,7 +375,25 @@ namespace CloudSoft.Repositories
 
 		public int ExecuteStoreCommand(string cmdText, params object[] parameters)
 		{
-			return ExecuteStoreCommandAsync(cmdText, parameters).Result;
+			int result = 0;
+			try
+			{
+				var dbContext = GetDbContext();
+				result = dbContext.Database.ExecuteSqlCommand(cmdText, parameters);
+			}
+			catch (Exception exp)
+			{
+				exp.Data.Add("SqlRepository:ExecuteStoreCommand:script", cmdText);
+				if (parameters != null)
+				{
+					for (int i = 0; i < parameters.Length; i++)
+					{
+						exp.Data.Add(string.Format("SqlRepository:ExecuteStoreCommand:script:P{0}", i), parameters[i]);
+					}
+				}
+				throw;
+			}
+			return result;
 		}
 
 		public async Task<int> ExecuteStoreCommandAsync(string cmdText, params object[] parameters)
@@ -307,7 +421,9 @@ namespace CloudSoft.Repositories
 
 		public ObjectResult<T> ExecuteStoreQuery<T>(string cmdText, params object[] parameters)
 		{
-			return ExecuteStoreQueryAsync<T>(cmdText, parameters).Result;
+			var dbContext = GetDbContext();
+			var result = dbContext.ObjectContext.ExecuteStoreQuery<T>(cmdText, parameters);
+			return result;
 		}
 
 		public async Task<ObjectResult<T>> ExecuteStoreQueryAsync<T>(string cmdText, params object[] parameters)
