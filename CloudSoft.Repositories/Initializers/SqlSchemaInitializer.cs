@@ -28,15 +28,6 @@ namespace CloudSoft.Repositories.Initializers
 			m_DbContext = dbContextFactory.GetDbContext();
 		}
 
-		//public SqlSchemaInitializer(DbContext dbContext)
-		//{
-		//    if (dbContext == null)
-		//    {
-		//        throw new ArgumentNullException("dbContext");
-		//    }
-		//    m_DbContext = dbContext;
-		//}
-
 		public void Initialize(string schemaTableName, string embededScriptNameSpace = null)
 		{
 			Database.SetInitializer<TContext>(null);
@@ -46,11 +37,10 @@ namespace CloudSoft.Repositories.Initializers
 
 			var dbContextFactory = new SchemaDbContextFactory<SchemaDbContext>(schemaTableName, m_DbContext.Database.Connection);
 			m_SchemaSqlRepository = new SchemaRepository(dbContextFactory);
-			// m_SchemaSqlRepository = new SchemaRepository(schemaTableName, m_DbContext.Database.Connection);
 
 			var currentDbSchemaId = GetSchemaId();
 			var patchList = GetSqlPatchList();
-			var nextSchemaId = patchList.Max(i => i.SchemaId);
+			var nextSchemaId = patchList.Max(i => i.SchemaId); 
 			if (currentDbSchemaId == nextSchemaId)
 			{
 				return;

@@ -7,6 +7,7 @@ using System.Data;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Data.Entity.Core.Objects;
+using System.Threading.Tasks;
 
 namespace CloudSoft.Repositories
 {
@@ -18,10 +19,7 @@ namespace CloudSoft.Repositories
 		public SqlRepository()
 			: this(new DbContextFactory<TContext>())
 		{
-			TraceEnabled = false;	 
 		}
-
-		public bool TraceEnabled { get; set; }
 
 		public SqlRepository(IDbContextFactory<TContext> factory)
 		{
@@ -35,17 +33,18 @@ namespace CloudSoft.Repositories
 
 		public virtual T Get<T>(Expression<Func<T, bool>> predicate) where T : class
 		{
+			return GetAsync(predicate).Result;
+		}
+
+		public virtual async Task<T> GetAsync<T>(Expression<Func<T, bool>> predicate) where T : class
+		{
 			if (predicate == null)
 			{
 				throw new ArgumentException("predicate does not be null.");
 			}
 			var dbContext = GetDbContext();
-			var query = dbContext.Set<T>().Where(predicate); 
-			//if (TraceEnabled)
-			//{
-			//	System.Diagnostics.Debug.WriteLine(query.ToTraceString());
-			//}
-			var result = query.FirstOrDefault();
+			var query = dbContext.Set<T>().Where(predicate);
+			var result = await query.FirstOrDefaultAsync();
 			return result;
 		}
 
@@ -53,10 +52,6 @@ namespace CloudSoft.Repositories
 		{
 			var dbContext = GetDbContext();
 			var query = dbContext.Set<T>().Where(predicate);
-			//if (TraceEnabled)
-			//{
-			//	System.Diagnostics.Debug.WriteLine(query.ToTraceString());
-			//}
 			return query;
 		}
 
@@ -64,20 +59,12 @@ namespace CloudSoft.Repositories
 			Expression<Func<T, TKey>> orderBy)  where T : class
 		{
 			var query = Query(predicate).OrderBy(orderBy);
-			if (TraceEnabled)
-			{
-				System.Diagnostics.Debug.WriteLine(query.ToString());
-			}
 			return query;
 		}
 
 		public virtual IQueryable<T> Query<T, TKey>(Expression<Func<T, TKey>> orderBy) where T : class
 		{
 			var query = Query<T>().OrderBy(orderBy);
-			if (TraceEnabled)
-			{
-				System.Diagnostics.Debug.WriteLine(query.ToString());
-			}
 			return query;
 		}
 
@@ -88,6 +75,11 @@ namespace CloudSoft.Repositories
 		}
 
 		public virtual int Insert<T>(T entity) where T : class
+		{
+			return InsertAsync(entity).Result;
+		}
+
+		public virtual async Task<int> InsertAsync<T>(T entity) where T : class
 		{
 			int result = 0;
 			var dbContext = GetDbContext();
@@ -102,13 +94,7 @@ namespace CloudSoft.Repositories
 				dbSet.Add(entity);
 				dbContext.ObjectContext.ObjectStateManager.ChangeObjectState(entity, EntityState.Added);
 
-				//if (TraceEnabled)
-				//{
-				//	string sql = dbContext.ObjectContext.ToTraceString();
-				//	System.Diagnostics.Debug.WriteLine(sql);
-				//}
-
-				result = dbContext.SaveChanges();
+				result = await dbContext.SaveChangesAsync();
 			}
 			catch (System.Data.Entity.Validation.DbEntityValidationException vex)
 			{
@@ -126,8 +112,6 @@ namespace CloudSoft.Repositories
 			}
 			catch (Exception exp)
 			{
-				// string sql = dbContext.ObjectContext.ToTraceString();
-				// exp.Data.Add("SqlRepository:SqlScript", sql);
 				exp.Data.Add("SqlRepository:Insert:Entity", entity.ToString());
 				throw;
 			}
@@ -158,12 +142,6 @@ namespace CloudSoft.Repositories
 						dbContext.ObjectContext.ObjectStateManager.ChangeObjectState(entity, EntityState.Added);
 					}
 
-					//if (TraceEnabled)
-					//{
-					//	string sql = dbContext.ObjectContext.ToTraceString();
-					//	System.Diagnostics.Debug.WriteLine(sql);
-					//}
-
 					dbContext.SaveChanges();
 					transactionScope.Complete();
 				}
@@ -184,13 +162,16 @@ namespace CloudSoft.Repositories
 			}
 			catch (Exception exp)
 			{
-				// string sql = dbContext.ObjectContext.ToTraceString();
-				// exp.Data.Add("SqlRepository:SqlScript", sql);
 				throw;
 			}
 		}
 
 		public virtual int Update<T>(T entity) where T : class
+		{
+			return UpdateAsync(entity).Result;
+		}
+
+		public virtual async Task<int> UpdateAsync<T>(T entity) where T : class
 		{
 			int result = 0;
 			var dbContext = GetDbContext();
@@ -202,18 +183,10 @@ namespace CloudSoft.Repositories
 				}
 				dbContext.ObjectContext.ObjectStateManager.ChangeObjectState(entity, EntityState.Modified);
 
-				//if (TraceEnabled)
-				//{
-				//	string sql = dbContext.ObjectContext.ToTraceString();
-				//	System.Diagnostics.Debug.WriteLine(sql);
-				//}
-
-				result = dbContext.SaveChanges();
+				result = await dbContext.SaveChangesAsync();
 			}
 			catch (Exception exp)
 			{
-				// string sql = dbContext.ObjectContext.ToTraceString();
-				// exp.Data.Add("SqlRepository:SqlScript", sql);
 				exp.Data.Add("SqlRepository:Update:Entity", entity.ToString());
 				throw;
 			}
@@ -223,42 +196,43 @@ namespace CloudSoft.Repositories
 
 		public virtual int Delete<T>(T entity) where T : class
 		{
+			return DeleteAsync(entity).Result;
+		}
+
+		public virtual async Task<int> DeleteAsync<T>(T entity) where T : class
+		{
 			int result = 0;
 			var dbContext = GetDbContext();
 			var loop = 0;
-retry:
-			try
+
+			while(true)
 			{
-				if (dbContext.Entry(entity).State == EntityState.Detached)
+				try
 				{
-					dbContext.Set<T>().Attach(entity);
+					if (dbContext.Entry(entity).State == EntityState.Detached)
+					{
+						dbContext.Set<T>().Attach(entity);
+					}
+					dbContext.ObjectContext.DeleteObject(entity);
+
+					result = await dbContext.SaveChangesAsync();
+					break;
 				}
-				dbContext.ObjectContext.DeleteObject(entity);
-
-				//if (TraceEnabled)
-				//{
-				//	string sql = dbContext.ObjectContext.ToTraceString();
-				//	System.Diagnostics.Debug.WriteLine(sql);
-				//}
-
-				result = dbContext.SaveChanges();
-			}
-			catch (DbUpdateConcurrencyException ex)
-			{
-				dbContext.ObjectContext.Refresh(RefreshMode.StoreWins, entity);
-				loop++;
-				if (loop < 2)
+				catch (DbUpdateConcurrencyException)
 				{
+					dbContext.ObjectContext.Refresh(RefreshMode.StoreWins, entity);
+					if (loop > 2)
+					{
+						break;
+					}
+					loop++;
 					System.Threading.Thread.Sleep(100);
-					goto retry;
 				}
-			}
-			catch (Exception exp)
-			{
-				// string sql = dbContext.ObjectContext.ToTraceString();
-				// exp.Data.Add("SqlRepository:SqlScript", sql);
-				exp.Data.Add("SqlRepository:Delete:Entity", entity.ToString());
-				throw;
+				catch (Exception exp)
+				{
+					exp.Data.Add("SqlRepository:Delete:Entity", entity.ToString());
+					throw;
+				}
 			}
 
 			return result;
@@ -281,11 +255,6 @@ retry:
 						dbContext.Set<T>().Attach(entity);
 					}
 					dbContext.ObjectContext.DeleteObject(entity);
-					//if (TraceEnabled)
-					//{
-					//	string sql = dbContext.ObjectContext.ToTraceString();
-					//	System.Diagnostics.Debug.WriteLine(sql);
-					//}
 					result = dbContext.SaveChanges();
 				}
 				catch (DbUpdateConcurrencyException)
@@ -300,8 +269,6 @@ retry:
 				}
 				catch (Exception exp)
 				{
-					// string sql = dbContext.ObjectContext.ToTraceString();
-					// exp.Data.Add("SqlRepository:SqlScript", sql);
 					exp.Data.Add("SqlRepository:Delete:Entity", entity.ToString());
 					throw;
 				}
@@ -310,18 +277,18 @@ retry:
 			return result;
 		}
 
-
 		public int ExecuteStoreCommand(string cmdText, params object[] parameters)
+		{
+			return ExecuteStoreCommandAsync(cmdText, parameters).Result;
+		}
+
+		public async Task<int> ExecuteStoreCommandAsync(string cmdText, params object[] parameters)
 		{
 			int result = 0;
 			try
 			{
 				var dbContext = GetDbContext();
-				if (TraceEnabled)
-				{
-					System.Diagnostics.Debug.WriteLine(cmdText);
-				}
-				result = dbContext.Database.ExecuteSqlCommand(cmdText, parameters);
+				result = await dbContext.Database.ExecuteSqlCommandAsync(cmdText, parameters);
 			}
 			catch (Exception exp)
 			{
@@ -340,12 +307,13 @@ retry:
 
 		public ObjectResult<T> ExecuteStoreQuery<T>(string cmdText, params object[] parameters)
 		{
+			return ExecuteStoreQueryAsync<T>(cmdText, parameters).Result;
+		}
+
+		public async Task<ObjectResult<T>> ExecuteStoreQueryAsync<T>(string cmdText, params object[] parameters)
+		{
 			var dbContext = GetDbContext();
-			if (TraceEnabled)
-			{
-				System.Diagnostics.Debug.WriteLine(cmdText);
-			}
-			var result = dbContext.ObjectContext.ExecuteStoreQuery<T>(cmdText, parameters);
+			var result = await dbContext.ObjectContext.ExecuteStoreQueryAsync<T>(cmdText, parameters);
 			return result;
 		}
 

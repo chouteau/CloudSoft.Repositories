@@ -5,6 +5,7 @@ using System.Text;
 using System.Data.Entity.Infrastructure;
 using System.Collections.Concurrent;
 using System.Data.Entity.Core.Objects;
+using System.Threading.Tasks;
 
 namespace CloudSoft.Repositories
 {
@@ -38,6 +39,14 @@ namespace CloudSoft.Repositories
 			return 0;
 		}
 
+		public async Task<int> DeleteAsync<T>(T entity) where T : class
+		{
+			return await Task<int>.Factory.StartNew(() =>
+				{
+					return Delete(entity);
+				});
+		}
+
 		public int DeleteAll<T>(System.Linq.Expressions.Expression<Func<T, bool>> predicate) where T : class
 		{
 			var table = GetOrCreateList<T>();
@@ -69,7 +78,17 @@ namespace CloudSoft.Repositories
 			throw new NotImplementedException();
 		}
 
+		public async Task<int> ExecuteStoreCommandAsync(string cmdText, params object[] parameters)
+		{
+			throw new NotImplementedException();
+		}
+
 		public ObjectResult<T> ExecuteStoreQuery<T>(string cmdText, params object[] parameters)
+		{
+			throw new NotImplementedException();
+		}
+
+		public async Task<ObjectResult<T>> ExecuteStoreQueryAsync<T>(string cmdText, params object[] parameters)
 		{
 			throw new NotImplementedException();
 		}
@@ -83,6 +102,14 @@ namespace CloudSoft.Repositories
 				result = table.AsQueryable().FirstOrDefault(predicate);
 			}
 			return result;
+		}
+
+		public async Task<T> GetAsync<T>(System.Linq.Expressions.Expression<Func<T, bool>> predicate) where T : class
+		{
+			return await Task<T>.Factory.StartNew(() =>
+				{
+					return Get(predicate);
+				});
 		}
 
 		public TContext GetDbContext()
@@ -117,6 +144,15 @@ namespace CloudSoft.Repositories
 			return 1;
 
 		}
+
+		public async Task<int> InsertAsync<T>(T entity) where T : class
+		{
+			return await Task<int>.Factory.StartNew(() =>
+				{
+					return Insert(entity);
+				});
+		}
+
 
 		public IQueryable<T> Query<T, TKey>(System.Linq.Expressions.Expression<Func<T, bool>> predicate, System.Linq.Expressions.Expression<Func<T, TKey>> orderBy) where T : class
 		{
@@ -161,6 +197,13 @@ namespace CloudSoft.Repositories
 			return 0;
 		}
 
+		public async Task<int> UpdateAsync<T>(T entity) where T : class
+		{
+			return await Task<int>.Factory.StartNew(() =>
+				{
+					return Update(entity);
+				});
+		}
 		public virtual void BulkInsert<T>(IEnumerable<T> list) where T : class
 		{
 			foreach (var item in list)

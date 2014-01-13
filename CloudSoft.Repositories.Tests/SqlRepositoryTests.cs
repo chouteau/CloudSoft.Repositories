@@ -21,7 +21,6 @@ namespace CloudSoft.Repositories.Tests
 			var dbContextFactory = new DbContextFactory<TestDbContext>();
 			var initializer = new Repositories.Initializers.SqlSchemaInitializer<TestDbContext>(dbContextFactory);
 			initializer.Initialize("_schema_test", null);
-			m_SqlRepository.TraceEnabled = true;
 		}
 
 		[Test]
@@ -53,5 +52,37 @@ namespace CloudSoft.Repositories.Tests
 
 			Assert.IsNull(model);
 		}
+
+		[Test]
+		public async void Create_Insert_Get_Delete_Async()
+		{
+
+			var model = new MyModel();
+			model.Name = Guid.NewGuid().ToString();
+
+			await m_SqlRepository.InsertAsync(model);
+
+			var existingId = model.Id;
+
+			model = await m_SqlRepository.GetAsync<MyModel>(i => i.Id == existingId);
+
+			Assert.IsNotNull(model);
+
+			var name = Guid.NewGuid().ToString();
+			model.Name = name;
+
+			await m_SqlRepository.UpdateAsync(model);
+
+			model = await m_SqlRepository.GetAsync<MyModel>(i => i.Id == existingId);
+
+			Assert.AreEqual(name, model.Name);
+
+			await m_SqlRepository.DeleteAsync(model);
+
+			model = await m_SqlRepository.GetAsync<MyModel>(i => i.Id == existingId);
+
+			Assert.IsNull(model);
+		}
+
 	}
 }
