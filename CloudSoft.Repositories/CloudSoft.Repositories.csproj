@@ -56,6 +56,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DbContextFactory.cs" />
+    <Compile Include="GlobalConfiguration.cs" />
     <Compile Include="IDbContextFactory.cs" />
     <Compile Include="Initializers\SchemaDbContext.cs" />
     <Compile Include="Initializers\SchemaDbContextFactory.cs" />

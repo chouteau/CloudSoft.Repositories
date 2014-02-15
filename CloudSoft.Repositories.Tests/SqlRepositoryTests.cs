@@ -21,6 +21,7 @@ namespace CloudSoft.Repositories.Tests
 			var dbContextFactory = new DbContextFactory<TestDbContext>();
 			var initializer = new Repositories.Initializers.SqlSchemaInitializer<TestDbContext>(dbContextFactory);
 			initializer.Initialize("_schema_test", null);
+			GlobalConfiguration.Logger = Console.WriteLine;
 		}
 
 		[Test]
@@ -56,9 +57,10 @@ namespace CloudSoft.Repositories.Tests
 		[Test]
 		public void Create_Insert_Get_Delete_With_Thread()
 		{
-			var thread = new System.Threading.Thread(Create_Insert_Get_Delete);
-			thread.IsBackground = true;
-			thread.Start();
+			var task = System.Threading.Tasks.Task.Run(()=>
+				{
+					Create_Insert_Get_Delete();
+				}).Wait(10 * 1000);
 		}
 
 

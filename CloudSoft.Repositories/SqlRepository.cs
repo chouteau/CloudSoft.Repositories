@@ -28,7 +28,12 @@ namespace CloudSoft.Repositories
 
 		public virtual TContext GetDbContext()
 		{
-			return m_dbContextFactory.GetDbContext();
+			var result = m_dbContextFactory.GetDbContext();
+			if (GlobalConfiguration.Logger != null)
+			{
+				result.Database.Log = GlobalConfiguration.Logger;
+			}
+			return result;
 		}
 
 		public virtual T Get<T>(Expression<Func<T, bool>> predicate) where T : class
