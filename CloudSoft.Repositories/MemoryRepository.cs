@@ -41,7 +41,7 @@ namespace CloudSoft.Repositories
 
 		public async Task<int> DeleteAsync<T>(T entity) where T : class
 		{
-			return await Task<int>.Factory.StartNew(() =>
+			return await Task<int>.Run(() =>
 				{
 					return Delete(entity);
 				});
@@ -106,7 +106,7 @@ namespace CloudSoft.Repositories
 
 		public async Task<T> GetAsync<T>(System.Linq.Expressions.Expression<Func<T, bool>> predicate) where T : class
 		{
-			return await Task<T>.Factory.StartNew(() =>
+			return await Task<T>.Run(() =>
 				{
 					return Get(predicate);
 				});
@@ -147,7 +147,7 @@ namespace CloudSoft.Repositories
 
 		public async Task<int> InsertAsync<T>(T entity) where T : class
 		{
-			return await Task<int>.Factory.StartNew(() =>
+			return await Task<int>.Run(() =>
 				{
 					return Insert(entity);
 				});
@@ -182,7 +182,7 @@ namespace CloudSoft.Repositories
 		{
 			var table = GetOrCreateList<T>() as SynchronizedCollection<T>;
 			var index = table.IndexOf(entity);
-			if (index > 0)
+			if (index > -1)
 			{
 				table[index] = entity;
 				var timeStampName = "version";
@@ -199,7 +199,7 @@ namespace CloudSoft.Repositories
 
 		public async Task<int> UpdateAsync<T>(T entity) where T : class
 		{
-			return await Task<int>.Factory.StartNew(() =>
+			return await Task<int>.Run(() =>
 				{
 					return Update(entity);
 				});

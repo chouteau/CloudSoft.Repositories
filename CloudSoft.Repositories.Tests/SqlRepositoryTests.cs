@@ -2,18 +2,18 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using NUnit.Framework;
 using System.Data.Entity;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CloudSoft.Repositories.Tests
 {
-	[TestFixture]
+	[TestClass]
 	public class SqlRepositoryTests
 	{
 		private TestDbContext m_DbContext;
 		private SqlRepository<TestDbContext> m_SqlRepository;
 
-		[SetUp]
+		[TestInitialize]
 		public void Setup()
 		{
 			m_DbContext = new TestDbContext();
@@ -24,7 +24,7 @@ namespace CloudSoft.Repositories.Tests
 			GlobalConfiguration.Logger = Console.WriteLine;
 		}
 
-		[Test]
+		[TestMethod]
 		public void Create_Insert_Get_Delete()
 		{
 			var model = new MyModel();
@@ -54,7 +54,7 @@ namespace CloudSoft.Repositories.Tests
 			Assert.IsNull(model);
 		}
 
-		[Test]
+		[TestMethod]
 		public void Create_Insert_Get_Delete_With_Thread()
 		{
 			var task = System.Threading.Tasks.Task.Run(()=>
@@ -64,7 +64,7 @@ namespace CloudSoft.Repositories.Tests
 		}
 
 
-		[Test]
+		[TestMethod]
 		public async void Create_Insert_Get_Delete_Async()
 		{
 			var model = new MyModel();

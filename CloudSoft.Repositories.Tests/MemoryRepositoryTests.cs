@@ -2,24 +2,24 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using NUnit.Framework;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CloudSoft.Repositories.Tests
 {
-	[TestFixture]
+	[TestClass]
 	public class MemoryRepositoryTests
 	{
 		private TestDbContext m_DbContext;
 		private MemoryRepository<TestDbContext> m_MRepository;
 
-		[SetUp]
+		[TestInitialize]
 		public void Setup()
 		{
 			m_DbContext = new TestDbContext();
 			m_MRepository = new MemoryRepository<TestDbContext>();
 		}
 
-		[Test]
+		[TestMethod]
 		public void CRUD()
 		{
 			var model = new MyModel();
@@ -49,7 +49,7 @@ namespace CloudSoft.Repositories.Tests
 			Assert.IsNull(model);
 		}
 
-		[Test]
+		[TestMethod]
 		public void Bulk_Insert()
 		{
 			var bulk = new List<MyModel>();

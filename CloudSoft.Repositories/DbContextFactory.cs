@@ -43,10 +43,13 @@ namespace CloudSoft.Repositories
 		public void Dispose()
 		{
 			if (m_DataContext != null
-				&& m_DataContext.Database != null
-				&& m_DataContext.Database.Connection != null)
+				&& m_DataContext.Database != null)
 			{
-				m_DataContext.Database.Connection.Close();
+				m_DataContext.Database.Log = null;
+				if (m_DataContext.Database.Connection != null)
+				{
+					m_DataContext.Database.Connection.Close();
+				}
 				m_DataContext.Dispose();
 				m_DataContext = null;
 			}
