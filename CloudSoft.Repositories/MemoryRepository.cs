@@ -97,10 +97,7 @@ namespace CloudSoft.Repositories
 		{
 			var table = GetOrCreateList<T>();
 			T result = default(T);
-			lock (table.SyncRoot)
-			{
-				result = table.AsQueryable().FirstOrDefault(predicate);
-			}
+			result = table.AsQueryable().FirstOrDefault(predicate);
 			return result;
 		}
 
@@ -124,15 +121,24 @@ namespace CloudSoft.Repositories
 			{
 				throw new Exception("entity already exists");
 			}
-			lock (list.SyncRoot)
-			{
-				list.Add(entity);
-			}
+			list.Add(entity);
 			var pkName = "Id"; // TODO : Use GetPrimaryKeyName from DbContext
 			var pik = entity.GetType().GetProperty(pkName, System.Reflection.BindingFlags.GetProperty | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.IgnoreCase);
 			if (pik != null)
 			{
-				pik.SetValue(entity, list.Count, null);
+				if (pik.PropertyType == typeof(int))
+				{
+					var id = list.Count();
+					pik.SetValue(entity, id, null);
+				}
+				else if (pik.PropertyType == typeof(string))
+				{
+					var existingValue = pik.GetValue(entity, null);
+					if (existingValue == null)
+					{
+						pik.SetValue(entity, Guid.NewGuid().ToString(), null);
+					}
+				}
 			}
 			var timeStampName = "version";
 			var pits = entity.GetType().GetProperty(timeStampName, System.Reflection.BindingFlags.GetProperty | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.IgnoreCase);
@@ -217,19 +223,20 @@ namespace CloudSoft.Repositories
 		private SynchronizedCollection<T> GetOrCreateList<T>()
 		{
 			var key = typeof(T).AssemblyQualifiedName;
-			SynchronizedCollection<T> list = null;
+			SynchronizedCollection<T> qc = null;
 			if (!m_Database.ContainsKey(key))
 			{
-				list = new SynchronizedCollection<T>();
-				m_Database.TryAdd(key, list);
+				var query = new List<T>();
+				qc = new SynchronizedCollection<T>(query.AsEnumerable());
+				m_Database.TryAdd(key, qc);
 			}
 			else
 			{
-				list = m_Database[key] as SynchronizedCollection<T>;
+				qc = m_Database[key] as SynchronizedCollection<T>;
 			}
-			return list;
+			return qc;
 		}
-
+		
 		private string GetPrimaryKeyName<T>() where T : class
 		{
 			var dbSet = GetDbContext().ObjectContext;

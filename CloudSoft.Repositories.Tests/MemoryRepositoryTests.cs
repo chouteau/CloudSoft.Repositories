@@ -50,6 +50,66 @@ namespace CloudSoft.Repositories.Tests
 		}
 
 		[TestMethod]
+		public void CRUD_GUID()
+		{
+			var model = new MyGuidModel();
+			model.Name = Guid.NewGuid().ToString();
+
+			m_MRepository.Insert(model);
+
+			var existingId = model.Id;
+
+			model = m_MRepository.Get<MyGuidModel>(i => i.Id == existingId);
+
+			Assert.IsNotNull(model);
+
+			var name = Guid.NewGuid().ToString();
+			model.Name = name;
+
+			m_MRepository.Update(model);
+
+			model = m_MRepository.Get<MyGuidModel>(i => i.Id == existingId);
+
+			Assert.AreEqual(name, model.Name);
+
+			m_MRepository.Delete(model);
+
+			model = m_MRepository.Get<MyGuidModel>(i => i.Id == existingId);
+
+			Assert.IsNull(model);
+		}
+
+		[TestMethod]
+		public void CRUD_Existing_GUID()
+		{
+			var model = new MyGuidModel();
+			model.Name = Guid.NewGuid().ToString();
+			var existingId = model.Id = Guid.NewGuid().ToString();
+
+			m_MRepository.Insert(model);
+
+			model = m_MRepository.Get<MyGuidModel>(i => i.Id == existingId);
+
+			Assert.IsNotNull(model);
+
+			var name = Guid.NewGuid().ToString();
+			model.Name = name;
+
+			m_MRepository.Update(model);
+
+			model = m_MRepository.Get<MyGuidModel>(i => i.Id == existingId);
+
+			Assert.AreEqual(name, model.Name);
+
+			m_MRepository.Delete(model);
+
+			model = m_MRepository.Get<MyGuidModel>(i => i.Id == existingId);
+
+			Assert.IsNull(model);
+		}
+
+
+		[TestMethod]
 		public void Bulk_Insert()
 		{
 			var bulk = new List<MyModel>();

@@ -145,6 +145,8 @@ where
 declare my_cursor Cursor
 for 
 select vname from #temp
+where vname <> 'database_firewall_rules'
+
 open my_cursor
 declare @Name varchar(1024)
 fetch next from my_cursor into @Name

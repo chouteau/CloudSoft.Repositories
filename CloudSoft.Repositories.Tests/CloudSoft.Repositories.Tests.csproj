@@ -59,6 +59,7 @@
   <ItemGroup>
     <Compile Include="AsyncMemoryRepositoryTests.cs" />
     <Compile Include="MemoryRepositoryTests.cs" />
+    <Compile Include="MyGuidIdModel.cs" />
     <Compile Include="MyModel.cs" />
     <Compile Include="MyModelMap.cs" />
     <Compile Include="SqlRepositoryTests.cs" />
